@@ -103,3 +103,30 @@ telegram.on("text", (message) => {
    }
 });
 ```
+Qui c’è un’analisi di quanto stiamo facendo:  
+– Verifichiamo con la funzione `indexOf` di JavaScript se il messaggio inizia con /codeday.  
+– Se è cosi, diremo alla libreria Clear di presidiare l’evento con l’ID oo4QIuKQQTYA.  
+– Usiamo la callback e poi analizziamo la data ends_at con moment. Moltiplichiamo per 1000 per convertirlo in millisecondi (moment li comprende) e Clear invia questa data in un formato timestamp UNIX.  
+– Usiamo la funzione `fromNow` di `moment` per ottenere il tempo relativo alla data “endsAt” e poi inviamo
+tutto attraverso le API di Telegram.
+## Step 6: Markdown
+Telegram supporta i messaggi inviati con **MarkDown**, un modo semplice di formattare il testo. Facciamo la data di fine in grassetto come esempio.  
+Nella versione Telegram di Markdown, delimiteremo il testo che vogliamo in grassetto con degli asterischi, cosicché il messaggio dovrebbe apparire così:
+> *CodeDay ends in \*2 months\*!*
+
+Per implementare questo è piuttosto facile: tutto quello che dobbiamo fare è delimitare la data di fine con degli asterischi e trasmettere il parametro “parse_mode” al Telegram API e impostarlo su “Markdown”, questo indicherà alla lib Telegram che vogliamo il testo come MarkDown.  
+Il codice modificato dovrebbe apparire in questo modo:
+```
+telegram.sendMessage(message.chat.id, "CodeDay ends *" + endsAt.fromNow() + "*!", {
+   parse_mode: "Markdown"
+});
+```
+Ora eseguiamo il comando `/codeday` e dovrebbe apparire questo:  
+
+Telegram supporta anche corsivo, codice in linea, blocchi di codice e URL in linea insieme all’opzione
+grassetto che abbiamo appena usato.
+## Inline bot di Telegram
+Questa parte spiegherà come trasformare questo bot in un **bot in linea**, che può essere richiamato da qualsiasi parte e aiuta gli utenti a trovare e inviare contenuti al vostro bot. I Bot in linea infatti permettono l’invio di contenuti più strutturati e di seguire determinati “flow” scritti all’interno del nostro bot per svolgere le azioni più disparate.  
+Step 0: Abilita la modalità in linea in Botfather
+I bot non hanno la modalità in linea abilitata di default, quindi avrai bisogno di inviare il comando `/setinline` a Botfather per abilitarla.  
+Puoi usare qualsiasi cosa come segnaposto testuale, io ho usato “Search Codeday...” per il mio.
