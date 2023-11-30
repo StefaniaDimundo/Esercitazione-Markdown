@@ -14,8 +14,10 @@ Andate su [telegram.org/dl](https://desktop.telegram.org/) e create il vostro ac
 ## Step 1: Creiamo la directory di progetto
 Ora che abbiamo Node.js e npm installati e il nostro account Telegram è pronto, possiamo partire col
 nostro lavoro. Aprite il vostro terminale preferito a digitate questi comandi:  
-`mkdir codeday-telegram-bot`  
-`cd codeday-telegram-bot`  
+```
+mkdir codeday-telegram-bot    
+cd codeday-telegram-bot
+```  
   
 Adesso che abbiamo una directory per il nostro bot Telegram, abbiamo bisogno di un `package.json` , se
 non siete neofiti di Node.js, non è necessario che vi spieghi a cosa serve. Altrimenti sappiate che molto
@@ -24,7 +26,9 @@ descrizione e fra le altre cose anche le dipendenze (intese come pacchetti softw
 programma per funzionare.  
   
 Per crearlo molto semplicemente, dalla directory del nostro progetto lanciamo il comando:  
-`npm init`  
+```
+npm init
+```  
   
 Questo dirà al client **npm** di inizializzare la nostra project directory con un `package.json` predefinito.
 Cliccate Invio a tutti i prompts, possiamo occuparci di “compilaro” più tardi.
@@ -34,6 +38,68 @@ Un pacchetto npm è sostanzialmente un pezzo di codice nel registro npm che poss
 semplice comando, `npm install` .  
   
 Noi andremo ad usare un pacchetto chiamato `node-telegram-bot-api` e possiamo installarlo così:  
-`npm install--save node-telegram-bot-api`  
+```
+npm install--save node-telegram-bot-api
+```  
 La parte `--save` indica a npm di salvare questo pacchetto nel nostro **package.json** cosicché sarà più
 facile installarlo dopo, senza ulteriori complicanze.  
+## Step 3: creare il tuo bot Telegram  
+Su telegram, contattate **@botfather** e usate il comando `/newbot` per creare un nuovo bot.  
+Chiamatelo come preferite.  
+## Step 4: scriviamo un po' di codice! 
+Adesso che abbiamo il nostro bot, possiamo usarlo per interfacciarci con Telegram e le sue API.  
+Create un file index.js nella vostra project directory, poi apritelo nel vostro text editor preferito.  Qui c'è qualche semplice codice "Hello World" che ho scritto per assistervi in questo step.
+```
+var TelegramBot = require('node-telegram-bot-api'),
+   // Be sure to replace YOUR_BOT_TOKEN with your actual bot token on this line.
+   telegram = new TelegramBot("YOUR_BOT_TOKEN", { polling: true });
+telegram.on("text", (message) => {
+   telegram.sendMessage(message.chat.id, "Hello world");
+});
+```
+Sostanzialmente, ciò che questo codice fa è includere la libreria che abbiamo scaricato da npm precedentemente, poi istanziare un nuovo oggetto “bot Telegram” con il nostro token e dirgli di interrogare costantemente Telegram in cerca di eventuali nuovi messaggi.  
+Poi lo ascolterà per l’evento “text” (che in questa libreria è un semplice messaggio di testo) e invierà un messaggio alla chat nella quale il messaggio originario era stato salvato dicendo “Hello world”.  
+Ora, andate sul file index.js con questo comando:
+```
+node index
+```
+Mandate un messaggio al vostro bot. Dovrebbe rispondere con "Hello World". Se lo fa, ottimo! Altrimenti commentate sotto.  
+## Step 5: Implementare un semplice comando  
+Allo stato attuale, questo bot non è realmente utile.  
+Rendiamolo utile aggiungendo un comando `/codeday` che ci dica quando finisce il CodeDay!  
+
+Utilizzeremo due librerie in più qui, `codeday-clear` e `moment`.
+Codeday-clear è la libreria ufficiale Node.js per interagire con le API di Clear.
+Clear è il nostro sistema interno di gestione del CodeDay e ha un API molto semplice da usare. Lo
+useremo per sapere la data finale del CodeDay e poi useremo moment per convertirla in un formato più adatto.  
+
+Per installare queste librerie:
+```
+nmp install --save codeday-clear moment
+```
+Nel nostro codice, abbiamo bisogno di includere queste due librerie e rappresentare un esempio “Clear”.  
+Da quando il Clear API richiede un accesso per Clear e un paio di API token/secret, ho creato una semplice app con permessi limitati apposta per questo workshop.
+```
+Token: 1YZiGaj3baaLU8IKVsASRIWaNF2oJNg0
+Secret: 1COMnWyGnGBsNqkhaZ6WMBWB9UWZw6QZ
+```
+Ecco come dovrebbe apparire:
+```
+var Clear = require('codeday-clear'),
+   // Our sample app token and secret
+   clear = new Clear("1YZiGaj3baaLU8IKVsASRIWaNF2oJNg0", "1COMnWyGnGBsNqkhaZ6WMBWB9UWZw6Q
+// moment is not a class, just a simple function
+var moment = require('moment');
+```
+Questo codice dovrebbe andare bene dopo che abbiamo già dichiarato l’istanza di Telegram. Ora che abbiamo i nostri esempi con Clear e moment dichiarati, possiamo usarli in un semplice comando.  
+Sostituiamo il codice dentro l’evento “text” con qualcosa del genere:
+```
+telegram.on("text", (message) => {
+   if(message.text.toLowerCase().indexOf("/codeday") === 0){
+      clear.getEventById("oo4QIuKQQTYA", (codedayEvent) => {
+         var endsAt = moment(codedayEvent.ends_at * 1000);
+         telegram.sendMessage(message.chat.id, "CodeDay ends " + endsAt.fromNow() + "!");
+      });
+   }
+});
+```
